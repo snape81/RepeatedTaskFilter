@@ -20,7 +20,7 @@ import static org.junit.Assert.assertThat;
 
 public class RepeatedTaskLimiterSchedulerTest {
     private final Logger logWriter = LoggerFactory.getLogger(RepeatedTaskLimiterSchedulerTest.class);
-    RepeatedTaskLimiterScheduler rtlms;
+    private RepeatedTaskLimiterScheduler rtlms;
 
     @Before
     public void setUp() throws Exception {
@@ -37,25 +37,22 @@ public class RepeatedTaskLimiterSchedulerTest {
         logWriter.debug("REPEATED TASK AVOIDING TEST ");
         LongCalculationTaskCallable lt1 = new LongCalculationTaskCallable();
 
-        List<LongCalculationTaskCallable> taskList = new ArrayList<LongCalculationTaskCallable>();
+        List<LongCalculationTaskCallable> taskList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             taskList.add(new LongCalculationTaskCallable());
         }
 
-        logWriter.debug("scheduled {}",rtlms.schedule("a", lt1));
+        logWriter.debug("scheduled {}", rtlms.schedule("a", lt1));
         for (LongCalculationTaskCallable longCalculationTaskCallable : taskList) {
-            logWriter.debug("scheduled {}",rtlms.schedule("a", longCalculationTaskCallable));
+            logWriter.debug("scheduled {}", rtlms.schedule("a", longCalculationTaskCallable));
             Thread.sleep(100);
         }
 
-        Thread.sleep(15*1000);
+        Thread.sleep(15 * 1000);
         assertThat("The LongCalculation is exactly repeated only twice", Counter.getQuantity(), equalTo(2));
-
     }
 
     private static class LongCalculationTaskCallable implements Callable<Void> {
-
-
         @Override
         public Void call() throws Exception {
             Thread.sleep(5000);
