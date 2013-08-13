@@ -14,40 +14,43 @@ import java.util.concurrent.Executors;
 public class RepeatedTaskLimiterSchedulerImpl implements RepeatedTaskLimiterScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(RepeatedTaskLimiterSchedulerImpl.class);
+    private final ConcurrentMap<String, RepeatedTask> scheduledRepeatable;
+    private final ExecutorService threadPoolExecutor;
 
-      private final ExecutorService threadPoolExecutor;
-      protected final ConcurrentMap<String, RepeatedTask> scheduledRepeatable;
-
-      public RepeatedTaskLimiterSchedulerImpl(int threadPoolSize) {
-          this.threadPoolExecutor = Executors.newFixedThreadPool(threadPoolSize);
-          this.scheduledRepeatable = new MapMaker().concurrencyLevel(threadPoolSize).makeMap();
-      }
+    public RepeatedTaskLimiterSchedulerImpl(int threadPoolSize) {
+        this.threadPoolExecutor = Executors.newFixedThreadPool(threadPoolSize);
+        this.scheduledRepeatable = new MapMaker().concurrencyLevel(threadPoolSize).makeMap();
+    }
 
     @Override
     public <T> boolean schedule(final String taskKey, final Callable<T> callable) {
         boolean scheduled = false;
 
         RepeatedTask newTask = new RepeatedTask(this, taskKey, callable);
-        RepeatedTask task = scheduledRepeatable.put(taskKey,newTask);
+        RepeatedTask task = scheduledRepeatable.put(taskKey, newTask);
         if (task == null) {
-            log.debug("New task created and scheduled {}",newTask);
-            // nuovo task per la key
+            log.debug("New task created and scheduled {}", newTask);
+            // new task for key
             threadPoolExecutor.submit(newTask);
             scheduled = true;
         }
         return scheduled;
     }
 
-
     @Override
     @PreDestroy
-      public void destroy() throws IOException {
-          log.info("Shutting down ExecutorService");
-          try {
-              threadPoolExecutor.shutdown();
-          } catch (Exception e) {
-              log.error("Error shutting down ExecutorService.", e);
-          }
-      }
+    public void destroy() throws IOException {
+        log.info("Shutting down ExecutorService");
+        try {
+            threadPoolExecutor.shutdown();
+        } catch (Exception e) {
+            log.error("Error shutting down ExecutorService.", e);
+        }
+    }
+
+    @Override
+    public RepeatedTask removeScheduledRepeatable(String taskKey) {
+        return scheduledRepeatable.remove(taskKey);
+    }
 
 }

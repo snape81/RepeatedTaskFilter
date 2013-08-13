@@ -11,10 +11,10 @@ public class RepeatedTask implements Callable<Void> {
     private static final Logger log = LoggerFactory.getLogger(RepeatedTask.class);
     final Callable callable;
     private final String taskKey;
-    private final RepeatedTaskLimiterSchedulerImpl scheduler;
+    private final RepeatedTaskLimiterScheduler scheduler;
     boolean endedTask;
 
-    public RepeatedTask(RepeatedTaskLimiterSchedulerImpl scheduler, String taskKey, Callable callable) {
+    public RepeatedTask(RepeatedTaskLimiterScheduler scheduler, String taskKey, Callable callable) {
         this.taskKey = taskKey;
         this.callable = callable;
         this.scheduler = scheduler;
@@ -26,17 +26,16 @@ public class RepeatedTask implements Callable<Void> {
             log.debug("REP TASK START: Executing repeated task: {}", taskKey);
             callable.call();
             log.debug("REP TASK END: Executing repeated task: {} ", taskKey);
-            return null;
         } catch (Exception e) {
-            log.error("END: Error executing repeated task:{}." + taskKey + e);
-            return null;
+            log.error("END: Error executing repeated task: {}", taskKey, e);
         } finally {
             endedTask = true;
-            RepeatedTask nextTask = scheduler.scheduledRepeatable.remove(taskKey);
+            RepeatedTask nextTask = scheduler.removeScheduledRepeatable(taskKey);
             if (nextTask != null && this != nextTask) {
                 scheduler.schedule(nextTask.taskKey, nextTask.callable);
             }
         }
+        return null;
     }
 
 
