@@ -5,12 +5,11 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 
 /**
- * This class manage repetaed idempotent task that can came froma an event driven
+ * This class manages repeated idempotent tasks in an event driven
  * app architecture.
- *
- * It Avoids to start the same operation in same time, enqueue only one action
- * per key and wait for completion of action in execution
- *
+ * <p/>
+ * It avoids to start the same task at same time, enqueues only one task
+ * per key and waits for completion of the executing task.
  */
 public interface RepeatedTaskLimiterScheduler {
 
@@ -18,4 +17,6 @@ public interface RepeatedTaskLimiterScheduler {
 
     @PreDestroy
     void destroy() throws IOException;
+
+    RepeatedTask removeScheduledRepeatable(String taskKey);
 }
